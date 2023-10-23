@@ -42,21 +42,11 @@ service:
 run: service
 	./cmd/numbrs/numbrs
 
-## tidy up go modules
-.PHONY: mod
-mod:
-	go mod tidy
-
 ## lint the whole project
 .PHONY: lint
 lint:
 	go run github.com/golangci/golangci-lint/cmd/golangci-lint@$(GOLANGCI_LINT_VERSION) run ./...
 	go run golang.org/x/vuln/cmd/govulncheck@latest ./...
-
-## generates coverage report
-.PHONY: test/coverage
-test/coverage:
-	go test -count=1 -coverprofile=$(covreport) ./...
 
 ## generates coverage report and shows it on the browser locally
 .PHONY: test/coverage/show
@@ -81,20 +71,6 @@ image/run: image
 .PHONY: image/publish
 image/publish: image
 	docker push $(image)
-
-## Releases to production
-.PHONY: release
-release: release_version=release-$(shell date '+%Y-%m-%d')-$(version)
-release: release_image=$(base_image):$(release_version)
-release:
-	@echo "releasing from image: $(image)"
-	@echo "release image:        $(release_image)"
-	@echo "git tag:              $(release_version)"
-	docker pull $(image)
-	docker image tag $(image) $(release_image)
-	docker push $(release_image)
-	git tag -a $(release_version) -m "release to production: $(release_image)"
-	git push origin $(release_version)
 
 ## Create the dev container image
 .PHONY: dev/image
