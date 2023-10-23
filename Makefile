@@ -48,6 +48,11 @@ lint:
 	go run github.com/golangci/golangci-lint/cmd/golangci-lint@$(GOLANGCI_LINT_VERSION) run ./...
 	go run golang.org/x/vuln/cmd/govulncheck@latest ./...
 
+## generates coverage report
+.PHONY: test/coverage
+test/coverage:
+	go test -count=1 -coverprofile=$(covreport) ./...
+
 ## generates coverage report and shows it on the browser locally
 .PHONY: test/coverage/show
 test/coverage/show: test/coverage
