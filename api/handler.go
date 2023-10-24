@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"slices"
+	"time"
 
 	"log/slog"
 
@@ -63,7 +64,10 @@ func request(u []string) ([]int, []error) {
 	var errs []error
 	var intResp []int
 	for _, v := range u {
-		resp, err := http.Get(v)
+		client := http.Client{
+			Timeout: 500 * time.Millisecond,
+		}
+		resp, err := client.Get(v)
 		if err != nil {
 			slog.Debug("bypassing http get error", "error", err)
 			errs = append(errs, err)
