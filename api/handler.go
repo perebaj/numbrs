@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"slices"
 	"time"
@@ -39,6 +40,8 @@ func numbers(w http.ResponseWriter, r *http.Request) {
 	intSlice, errs := request(u)
 	// We want to return an error if all the urls are invalid
 	if len(errs) == len(u) {
+		err := errors.Join(errs...)
+		slog.Error("all urls are invalid", "error", err)
 		send(w, http.StatusInternalServerError, NumberResponse{
 			Numbers: []int{},
 		})
