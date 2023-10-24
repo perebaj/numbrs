@@ -12,7 +12,7 @@ import (
 func TestNumbers(t *testing.T) {
 	server1 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		_, err := w.Write([]byte(`{"numbers":[1,2,3]}`))
+		_, err := w.Write([]byte(`{"numbers":[3,1,3,4]}`))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -20,7 +20,7 @@ func TestNumbers(t *testing.T) {
 
 	server2 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		_, err := w.Write([]byte(`{"numbers":[4,5,6]}`))
+		_, err := w.Write([]byte(`{"numbers":[4,2,6,4]}`))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -41,15 +41,14 @@ func TestNumbers(t *testing.T) {
 	}
 
 	want := numberResponse{
-		Numbers: []int{1, 2, 3, 4, 5, 6},
+		Numbers: []int{1, 2, 3, 4, 6},
 	}
-	if len(gotResp.Numbers) == 6 {
+	if len(gotResp.Numbers) == 5 {
 		assert(t, want.Numbers[0], gotResp.Numbers[0])
 		assert(t, want.Numbers[1], gotResp.Numbers[1])
 		assert(t, want.Numbers[2], gotResp.Numbers[2])
 		assert(t, want.Numbers[3], gotResp.Numbers[3])
 		assert(t, want.Numbers[4], gotResp.Numbers[4])
-		assert(t, want.Numbers[5], gotResp.Numbers[5])
 	} else {
 		t.Errorf("number of ints expected is wrong got %v want %v", len(gotResp.Numbers), len(want.Numbers))
 	}
@@ -155,6 +154,25 @@ func TestReq_InvalidStatusCode(t *testing.T) {
 		assert(t, ErrInvalidStatusCode, errs[1])
 	} else {
 		t.Errorf("number of errors expected is wrong got %v want %v", len(errs), 2)
+	}
+}
+
+func TestSortCompact(t *testing.T) {
+	want := []int{1, 2, 3, 4, 5, 6, 9, 10, 55}
+	got := sortCompact([]int{9, 10, 55, 1, 2, 3, 4, 55, 5, 6, 1, 2, 3})
+
+	if len(got) == 9 {
+		assert(t, want[0], got[0])
+		assert(t, want[1], got[1])
+		assert(t, want[2], got[2])
+		assert(t, want[3], got[3])
+		assert(t, want[4], got[4])
+		assert(t, want[5], got[5])
+		assert(t, want[6], got[6])
+		assert(t, want[7], got[7])
+		assert(t, want[8], got[8])
+	} else {
+		t.Errorf("number of ints expected is wrong got %v want %v", len(got), 9)
 	}
 }
 

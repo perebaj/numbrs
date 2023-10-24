@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"net/http"
+	"slices"
 
 	"log/slog"
 
@@ -37,11 +38,21 @@ func numbers(w http.ResponseWriter, r *http.Request) {
 		send(w, http.StatusInternalServerError, numberResponse{
 			Numbers: []int{},
 		})
-	} else {
-		send(w, http.StatusOK, numberResponse{
-			Numbers: intSlice,
-		})
+		return
 	}
+
+	intSlice = sortCompact(intSlice)
+
+	send(w, http.StatusOK, numberResponse{
+		Numbers: intSlice,
+	})
+}
+
+func sortCompact(intSlice []int) []int {
+	slices.Sort(intSlice)
+	intSlice = slices.Compact(intSlice)
+
+	return intSlice
 }
 
 func request(u []string) ([]int, []error) {
