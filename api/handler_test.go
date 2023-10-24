@@ -12,7 +12,7 @@ import (
 func TestNumbers(t *testing.T) {
 	server1 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		_, err := w.Write([]byte(`{"numbers":[1,2,3]}`))
+		_, err := w.Write([]byte(`{"numbers":[3,1,3]}`))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -20,7 +20,7 @@ func TestNumbers(t *testing.T) {
 
 	server2 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		_, err := w.Write([]byte(`{"numbers":[4,5,6]}`))
+		_, err := w.Write([]byte(`{"numbers":[2, 1]}`))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -35,21 +35,18 @@ func TestNumbers(t *testing.T) {
 	r.ServeHTTP(w, req)
 	assert(t, http.StatusOK, w.Result().StatusCode)
 
-	var gotResp numberResponse
+	var gotResp NumberResponse
 	if err := json.NewDecoder(w.Result().Body).Decode(&gotResp); err != nil {
 		t.Fatal(err)
 	}
 
-	want := numberResponse{
-		Numbers: []int{1, 2, 3, 4, 5, 6},
+	want := NumberResponse{
+		Numbers: []int{1, 2, 3},
 	}
-	if len(gotResp.Numbers) == 6 {
+	if len(gotResp.Numbers) == 3 {
 		assert(t, want.Numbers[0], gotResp.Numbers[0])
 		assert(t, want.Numbers[1], gotResp.Numbers[1])
 		assert(t, want.Numbers[2], gotResp.Numbers[2])
-		assert(t, want.Numbers[3], gotResp.Numbers[3])
-		assert(t, want.Numbers[4], gotResp.Numbers[4])
-		assert(t, want.Numbers[5], gotResp.Numbers[5])
 	} else {
 		t.Errorf("number of ints expected is wrong got %v want %v", len(gotResp.Numbers), len(want.Numbers))
 	}
@@ -81,7 +78,7 @@ func TestNumbers_ErrorHandler(t *testing.T) {
 	r.ServeHTTP(w, req)
 	assert(t, http.StatusInternalServerError, w.Result().StatusCode)
 
-	var gotResp numberResponse
+	var gotResp NumberResponse
 	if err := json.NewDecoder(w.Result().Body).Decode(&gotResp); err != nil {
 		t.Fatal(err)
 	}
@@ -109,8 +106,8 @@ func TestNumbers_NoValidURLs(t *testing.T) {
 }
 
 func TestReq(t *testing.T) {
-	want := testServerResponse{
-		Numbers: []int{1, 2, 3},
+	want := TestServerResponse{
+		Numbers: []int{1, 2},
 	}
 
 	wantBytes, err := json.Marshal(want)
@@ -131,14 +128,11 @@ func TestReq(t *testing.T) {
 		t.Errorf("number of errors expected is wrong got %v want %v", len(errs), 0)
 	}
 
-	if len(intSlice) == 6 {
-		// compare want to ints
+	if len(intSlice) == 4 {
 		assert(t, want.Numbers[0], intSlice[0])
 		assert(t, want.Numbers[1], intSlice[1])
-		assert(t, want.Numbers[2], intSlice[2])
-		assert(t, want.Numbers[0], intSlice[3])
-		assert(t, want.Numbers[1], intSlice[4])
-		assert(t, want.Numbers[2], intSlice[5])
+		assert(t, want.Numbers[0], intSlice[2])
+		assert(t, want.Numbers[1], intSlice[3])
 	} else {
 		t.Errorf("number of ints expected is wrong got %v want %v", len(intSlice), 6)
 	}
@@ -155,6 +149,19 @@ func TestReq_InvalidStatusCode(t *testing.T) {
 		assert(t, ErrInvalidStatusCode, errs[1])
 	} else {
 		t.Errorf("number of errors expected is wrong got %v want %v", len(errs), 2)
+	}
+}
+
+func TestSortCompact(t *testing.T) {
+	want := []int{1, 2, 3}
+	got := sortCompact([]int{3, 2, 1, 1, 2, 3})
+
+	if len(got) == 3 {
+		assert(t, want[0], got[0])
+		assert(t, want[1], got[1])
+		assert(t, want[2], got[2])
+	} else {
+		t.Errorf("number of ints expected is wrong got %v want %v", len(got), 9)
 	}
 }
 
