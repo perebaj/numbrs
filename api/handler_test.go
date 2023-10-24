@@ -35,12 +35,12 @@ func TestNumbers(t *testing.T) {
 	r.ServeHTTP(w, req)
 	assert(t, http.StatusOK, w.Result().StatusCode)
 
-	var gotResp numberResponse
+	var gotResp NumberResponse
 	if err := json.NewDecoder(w.Result().Body).Decode(&gotResp); err != nil {
 		t.Fatal(err)
 	}
 
-	want := numberResponse{
+	want := NumberResponse{
 		Numbers: []int{1, 2, 3, 4, 6},
 	}
 	if len(gotResp.Numbers) == 5 {
@@ -80,7 +80,7 @@ func TestNumbers_ErrorHandler(t *testing.T) {
 	r.ServeHTTP(w, req)
 	assert(t, http.StatusInternalServerError, w.Result().StatusCode)
 
-	var gotResp numberResponse
+	var gotResp NumberResponse
 	if err := json.NewDecoder(w.Result().Body).Decode(&gotResp); err != nil {
 		t.Fatal(err)
 	}
@@ -108,7 +108,7 @@ func TestNumbers_NoValidURLs(t *testing.T) {
 }
 
 func TestReq(t *testing.T) {
-	want := testServerResponse{
+	want := TestServerResponse{
 		Numbers: []int{1, 2, 3},
 	}
 

@@ -10,11 +10,13 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-type numberResponse struct {
+// NumberResponse is the response from the /numbers endpoint
+type NumberResponse struct {
 	Numbers []int `json:"numbers"`
 }
 
-type testServerResponse struct {
+// TestServerResponse is the response from the test server
+type TestServerResponse struct {
 	Numbers []int    `json:"numbers"`
 	Strings []string `json:"strings"`
 }
@@ -24,6 +26,7 @@ func Handler(r chi.Router) {
 	r.HandleFunc("/numbers", numbers)
 }
 
+// numbers handles the /numbers endpoint
 func numbers(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	u := query["u"]
@@ -35,7 +38,7 @@ func numbers(w http.ResponseWriter, r *http.Request) {
 	intSlice, errs := request(u)
 	// We want to return an error if all the urls are invalid
 	if len(errs) == len(u) {
-		send(w, http.StatusInternalServerError, numberResponse{
+		send(w, http.StatusInternalServerError, NumberResponse{
 			Numbers: []int{},
 		})
 		return
@@ -43,7 +46,7 @@ func numbers(w http.ResponseWriter, r *http.Request) {
 
 	intSlice = sortCompact(intSlice)
 
-	send(w, http.StatusOK, numberResponse{
+	send(w, http.StatusOK, NumberResponse{
 		Numbers: intSlice,
 	})
 }
@@ -55,6 +58,7 @@ func sortCompact(intSlice []int) []int {
 	return intSlice
 }
 
+// request makes a request to the urls and returns the ints and errors
 func request(u []string) ([]int, []error) {
 	var errs []error
 	var intResp []int
@@ -73,7 +77,7 @@ func request(u []string) ([]int, []error) {
 		if resp.StatusCode != http.StatusOK {
 			errs = append(errs, ErrInvalidStatusCode)
 		} else {
-			var r testServerResponse
+			var r TestServerResponse
 			if err := json.NewDecoder(resp.Body).Decode(&r); err != nil {
 				errs = append(errs, err)
 				continue
