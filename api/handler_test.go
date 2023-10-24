@@ -61,10 +61,18 @@ func TestNumbers_ErrorHandler(t *testing.T) {
 	}))
 
 	server2 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusOK)
+		_, err := w.Write([]byte(`{"wrong":[4,5,6]}`))
+		if err != nil {
+			t.Fatal(err)
+		}
 	}))
 
-	target := "/numbers?u=" + server1.URL + "&u=" + server2.URL
+	server3 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	target := "/numbers?u=" + server1.URL + "&u=" + server2.URL + "&u=" + server3.URL
 
 	req := httptest.NewRequest("GET", target, nil)
 	w := httptest.NewRecorder()
@@ -80,6 +88,24 @@ func TestNumbers_ErrorHandler(t *testing.T) {
 	if len(gotResp.Numbers) != 0 {
 		t.Errorf("number of ints expected is wrong got %v want 0", len(gotResp.Numbers))
 	}
+}
+
+func TestNumbers_NoValidURLs(t *testing.T) {
+	target := "/numbers"
+
+	req := httptest.NewRequest("GET", target, nil)
+	w := httptest.NewRecorder()
+	r := chi.NewRouter()
+	Handler(r)
+	r.ServeHTTP(w, req)
+	assert(t, http.StatusBadRequest, w.Result().StatusCode)
+
+	var gotResp Error
+	if err := json.NewDecoder(w.Result().Body).Decode(&gotResp); err != nil {
+		t.Fatal(err)
+	}
+	assert(t, "invalid_request", gotResp.Code)
+	assert(t, "no valid urls available", gotResp.Message)
 }
 
 func TestReq(t *testing.T) {
@@ -100,21 +126,21 @@ func TestReq(t *testing.T) {
 		}
 	}))
 	defer server.Close()
-	ints, errs := request([]string{server.URL, server.URL})
+	intSlice, errs := request([]string{server.URL, server.URL})
 	if len(errs) != 0 {
 		t.Errorf("number of errors expected is wrong got %v want %v", len(errs), 0)
 	}
 
-	if len(ints) == 6 {
+	if len(intSlice) == 6 {
 		// compare want to ints
-		assert(t, want.Numbers[0], ints[0])
-		assert(t, want.Numbers[1], ints[1])
-		assert(t, want.Numbers[2], ints[2])
-		assert(t, want.Numbers[0], ints[3])
-		assert(t, want.Numbers[1], ints[4])
-		assert(t, want.Numbers[2], ints[5])
+		assert(t, want.Numbers[0], intSlice[0])
+		assert(t, want.Numbers[1], intSlice[1])
+		assert(t, want.Numbers[2], intSlice[2])
+		assert(t, want.Numbers[0], intSlice[3])
+		assert(t, want.Numbers[1], intSlice[4])
+		assert(t, want.Numbers[2], intSlice[5])
 	} else {
-		t.Errorf("number of ints expected is wrong got %v want %v", len(ints), 6)
+		t.Errorf("number of ints expected is wrong got %v want %v", len(intSlice), 6)
 	}
 }
 

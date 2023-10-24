@@ -31,7 +31,7 @@ func numbers(w http.ResponseWriter, r *http.Request) {
 		sendErr(w, http.StatusBadRequest, Error{Code: "invalid_request", Message: "no valid urls available"})
 	}
 
-	ints, errs := request(u)
+	intSlice, errs := request(u)
 	// We want to return an error if all the urls are invalid
 	if len(errs) == len(u) {
 		send(w, http.StatusInternalServerError, numberResponse{
@@ -39,7 +39,7 @@ func numbers(w http.ResponseWriter, r *http.Request) {
 		})
 	} else {
 		send(w, http.StatusOK, numberResponse{
-			Numbers: ints,
+			Numbers: intSlice,
 		})
 	}
 }
@@ -64,8 +64,14 @@ func request(u []string) ([]int, []error) {
 		} else {
 			var r testServerResponse
 			if err := json.NewDecoder(resp.Body).Decode(&r); err != nil {
-				slog.Debug("bypassing status code different from 200", "error", err)
+				errs = append(errs, err)
+				continue
 			}
+			if len(r.Numbers) == 0 || len(r.Strings) != 0 {
+				errs = append(errs, ErrInvalidResponse)
+				continue
+			}
+
 			intResp = append(intResp, r.Numbers...)
 		}
 	}

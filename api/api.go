@@ -12,6 +12,8 @@ import (
 var (
 	// ErrInvalidStatusCode is returned when the status code is different from 200
 	ErrInvalidStatusCode = errors.New("status code not ok")
+	// ErrInvalidResponse is returned when the response is not valid
+	ErrInvalidResponse = errors.New("invalid response")
 )
 
 // Error is the structure for the error response
